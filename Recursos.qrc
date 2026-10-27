@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/imagenes">
+        <file>ai-image-generator(11).webp</file>
+        <file>ai-image-generator(10).webp</file>
+        <file>ai-image-generator(12).webp</file>
+        <file>ai-image-generator(2).webp</file>
+        <file>ai-image-generator(4).webp</file>
+        <file>ai-image-generator(5).webp</file>
+        <file>ai-image-generator(3).webp</file>
+        <file>RemyIdle.webp</file>
+        <file>ai-image-generator(7).webp</file>
+        <file>ai-image-generator(8).webp</file>
+    </qresource>
+</RCC>
