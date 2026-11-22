@@ -7,6 +7,8 @@
 #include <QTimer>
 #include "jugador.h"
 #include "enemigo.h"
+#include "objeto.h"
+#include <QGraphicsLineItem>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -26,11 +28,16 @@ private:
 
     Jugador *remy;
     Enemigo *insecto;
+    Objeto *charcoLodo;
+    Objeto *cadena;
 
     QGraphicsRectItem *graficoRemy;
     QGraphicsRectItem *graficoInsecto;
+    QGraphicsRectItem *graficoCharco;
+    QGraphicsLineItem *graficoCadena;
     bool teclaDerechaPresionada;
     bool teclaIzquierdaPresionada;
+    bool teclaSaltoPresionada;
 
 private slots:
     void actualizarJuego();

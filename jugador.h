@@ -8,6 +8,9 @@ private:
     bool estaAgachado;
     int piedrasInventario;
     bool enElSuelo;
+    bool enLodo;
+    bool colgadoDeCadena;
+    float tiempoGraciaCadena;
 
 public:
     Jugador(float x = 0.0f, float y = 0.0f);
@@ -23,6 +26,12 @@ public:
     bool obtenerAgachado() const;
     int obtenerPiedras() const;
     bool obtenerEnSuelo() const;
+    void establecerEnLodo(bool lodo);
+    bool obtenerEnLodo() const;
+    void establecerColgado(bool colgado);
+    bool obtenerColgado() const;
+    void establecerTiempoGracia(float tiempo);
+    float obtenerTiempoGracia() const;
 };
 
 #endif // JUGADOR_H

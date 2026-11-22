@@ -40,7 +40,7 @@ void Enemigo::razonar(){
 }
 
 void Enemigo::actuar(float dt, float xJugador, float yJugador){
-    switch (estadoActual) {
+    switch (estadoActual){
     case PATRULLANDO: {
         if (indicePatrullaActual < (int)puntosPatrulla.size()) {
             float objetivoX = puntosPatrulla[indicePatrullaActual].first;
@@ -61,19 +61,17 @@ void Enemigo::actuar(float dt, float xJugador, float yJugador){
         break;
     }
     case INVESTIGANDO: {
-        // Por ahora investiga moviéndose a la derecha.
-        // Aquí después usaremos xRuido para que vaya al origen exacto.
         velocidadX = 150.0f;
         break;
     }
     case PERSIGUIENDO: {
-        // Persecución real: calcula la dirección hacia Remy
-        if (xJugador > posicionX + 5.0f) {
-            velocidadX = 250.0f; // Correr a la derecha
+        // calcula la dirección hacia Remy
+        if (xJugador > posicionX + 5.0f) {// el 5 es el margen de tolerancia o deadzone
+            velocidadX = 250.0f;
         } else if (xJugador < posicionX - 5.0f) {
-            velocidadX = -250.0f; // Correr a la izquierda
+            velocidadX = -250.0f;
         } else {
-            velocidadX = 0.0f; // Ya lo alcanzó
+            velocidadX = 0.0f; // Ya lo alcanzo
         }
         break;
     }
