@@ -4,8 +4,8 @@
 
 Enemigo::Enemigo(float x, float y):Entidad(x, y), estadoActual(PATRULLANDO), rangoVision(200.0f), radioEscucha(150.0f), contadorEngaños(0), indicePatrullaActual(0){
     // por donde va a vigilar
-    puntosPatrulla.push_back({200.0f, 600.0f});
-    puntosPatrulla.push_back({800.0f, 600.0f});
+    puntosPatrulla.push_back({300.0f, 600.0f});
+    puntosPatrulla.push_back({1000.0f, 600.0f});
 }
 void Enemigo::actualizarFisica(float dt){
     posicionX += velocidadX * dt;
@@ -39,26 +39,44 @@ void Enemigo::razonar(){
     // Aquí se podría añadir lógica más compleja para el futuro.
 }
 
-void Enemigo::actuar(float dt){
+void Enemigo::actuar(float dt, float xJugador, float yJugador){
     switch (estadoActual) {
     case PATRULLANDO: {
         if (indicePatrullaActual < (int)puntosPatrulla.size()) {
             float objetivoX = puntosPatrulla[indicePatrullaActual].first;
+
             if (std::abs(posicionX - objetivoX) < 5.0f) {
-                // Llegó al punto, pasa al siguiente
+                posicionX = objetivoX;
+                velocidadX = 0.0f;
                 indicePatrullaActual = (indicePatrullaActual + 1) % puntosPatrulla.size();
-            } else {
-                // Se mueve hacia el objetivo
-                velocidadX = (objetivoX > posicionX) ? 100.0f : -100.0f;
+            }
+            else {
+                if (objetivoX > posicionX) {
+                    velocidadX = 100.0f;
+                } else {
+                    velocidadX = -100.0f;
+                }
             }
         }
         break;
     }
-    case INVESTIGANDO:
-    case PERSIGUIENDO:
-        // Velocidad de investigación/persecución
-        velocidadX = 200.0f;
+    case INVESTIGANDO: {
+        // Por ahora investiga moviéndose a la derecha.
+        // Aquí después usaremos xRuido para que vaya al origen exacto.
+        velocidadX = 150.0f;
         break;
+    }
+    case PERSIGUIENDO: {
+        // Persecución real: calcula la dirección hacia Remy
+        if (xJugador > posicionX + 5.0f) {
+            velocidadX = 250.0f; // Correr a la derecha
+        } else if (xJugador < posicionX - 5.0f) {
+            velocidadX = -250.0f; // Correr a la izquierda
+        } else {
+            velocidadX = 0.0f; // Ya lo alcanzó
+        }
+        break;
+    }
     }
     actualizarFisica(dt);
 }

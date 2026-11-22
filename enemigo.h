@@ -26,7 +26,7 @@ public:
 
     void percibir(float xJugador, float yJugador, bool hayRuido, float xRuido, float yRuido);
     void razonar();
-    void actuar(float dt);
+    void actuar(float dt, float xJugador, float yJugador);
     void aprender();
 
     Estado obtenerEstado() const;

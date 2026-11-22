@@ -20,4 +20,4 @@ HEADERS += \
     mainwindow.h \
     objeto.h
 
-QT += widgets
+QT += core gui widgets
