@@ -15,10 +15,12 @@ private:
     float rangoVision;
     float radioEscucha;
     int contadorEngaños;
+    float xRuido;
+    float yRuido;
 
     std::vector<std::pair<float, float>> puntosPatrulla;
     int indicePatrullaActual;
-
+    float tiempoInvestigacion;
 public:
     Enemigo(float x = 0.0f, float y = 0.0f);
 

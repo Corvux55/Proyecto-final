@@ -29,5 +29,6 @@ public:
     void iniciarOscilacion();
     void darImpulso(float direccion);
     float obtenerVelocidadAngular() const;
+    void establecerActivo(bool a);
 };
 #endif // OBJETO_H

@@ -1,13 +1,16 @@
 #include "enemigo.h"
 #include <cmath>
 #include <iostream>
-
-Enemigo::Enemigo(float x, float y):Entidad(x, y), estadoActual(PATRULLANDO), rangoVision(200.0f), radioEscucha(150.0f), contadorEngaños(0), indicePatrullaActual(0){
+#include <QDebug>
+Enemigo::Enemigo(float x, float y):Entidad(x, y), estadoActual(PATRULLANDO), rangoVision(200.0f), radioEscucha(150.0f), contadorEngaños(0), indicePatrullaActual(0),tiempoInvestigacion(0.0f){
     // por donde va a vigilar
     puntosPatrulla.push_back({300.0f, 600.0f});
     puntosPatrulla.push_back({1000.0f, 600.0f});
 }
 void Enemigo::actualizarFisica(float dt){
+    if (tiempoInvestigacion > 0.0f){
+        tiempoInvestigacion -= dt;
+    }
     posicionX += velocidadX * dt;
     posicionY += velocidadY * dt;
 }
@@ -26,10 +29,19 @@ void Enemigo::percibir(float xJugador, float yJugador, bool hayRuido, float xRui
         float dxR = xRuido - posicionX;
         float dyR = yRuido - posicionY;
         float distanciaRuido = std::sqrt(dxR*dxR + dyR*dyR);
-        if (distanciaRuido < radioEscucha) {
+
+        qDebug() << "Insecto en X:" << posicionX << " | Ruido en X:" << xRuido << " | Distancia:" << distanciaRuido;
+        if (distanciaRuido < radioEscucha){
+               qDebug() << "¡ESCUCHÓ EL RUIDO! Cambiando a INVESTIGANDO";
             estadoActual = INVESTIGANDO;
+            this->xRuido = xRuido;
+            this->yRuido = yRuido;
+            tiempoInvestigacion = 2.0f;
             return;
         }
+    }
+    if (estadoActual == INVESTIGANDO && tiempoInvestigacion > 0.0f) {
+        return; // Se queda investigando
     }
     estadoActual = PATRULLANDO;
 }
@@ -60,8 +72,16 @@ void Enemigo::actuar(float dt, float xJugador, float yJugador){
         }
         break;
     }
-    case INVESTIGANDO: {
-        velocidadX = 150.0f;
+    case INVESTIGANDO:{
+          qDebug() << "Insecto INVESTIGANDO. Objetivo X:" << this->xRuido << " | Mi X:" << posicionX;
+        if (this->xRuido > posicionX + 10.0f){
+            velocidadX = 150.0f;
+        } else if (this->xRuido < posicionX - 10.0f){
+            velocidadX = -150.0f;
+        } else {
+            velocidadX = 0.0f;
+            qDebug() << "Llegué al ruido, vuelvo a patrullar";
+        }
         break;
     }
     case PERSIGUIENDO: {

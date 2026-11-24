@@ -29,8 +29,21 @@ void Objeto::actualizarFisica(float dt){
             anguloOscilacion = -60.0f;
             velocidadAngular = -velocidadAngular * 0.5f;
         }//ponemos tope para corregir la vueltas en circulos. si se pasa de 60 grados lo devolvemos y le quitamos fuerza
+
     }
-    // Las cajas y charcos están quietos por ahora
+    else if (tipo == PIEDRA && activo){
+        //fisicas
+        velocidadY += 980.0f * dt;
+        posicionX += velocidadX * dt;
+        posicionY += velocidadY * dt;
+
+        // se detiene si toca suelo
+        if (posicionY >= 600.0f) {
+            posicionY = 600.0f;
+            activo = false; //
+        }
+        // Las cajas y charcos están quietos por ahora
+    }
 }
 
 Objeto::TipoObjeto Objeto::obtenerTipo() const {return tipo;}
@@ -39,3 +52,6 @@ float Objeto::obtenerPeso() const {return peso;}
 float Objeto::obtenerAncho() const {return ancho;}
 float Objeto::obtenerAlto() const {return alto;}
 float Objeto::obtenerAnguloOscilacion() const {return anguloOscilacion;}
+void Objeto::establecerActivo(bool a){
+    activo =a;
+}

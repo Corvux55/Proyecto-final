@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
     vista->setFixedSize(1280, 720);
     setCentralWidget(vista);
 
-    remy = new Jugador(880.0f, 380.0f);
+    remy = new Jugador(100.0f, 600.0f);
     insecto = new Enemigo(400.0f, 550.0f);
     // Remy rectangulo cyan de 40x50 para la prueba
     graficoRemy = escena->addRect(0, 0, 40, 50, QPen(Qt::black), QBrush(Qt::cyan));
@@ -31,11 +31,20 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
     graficoCharco = escena->addRect(0, 0, charcoLodo->obtenerAncho(), charcoLodo->obtenerAlto(),  QPen(Qt::NoPen), QBrush(QColor(80, 60, 40, 150)));
     graficoCharco->setPos(charcoLodo->obtenerX(), charcoLodo->obtenerY());
 
-    // Crear la Cadena (
+    // Crear la Cadena
     cadena = new Objeto(900.0f, 100.0f, Objeto::CADENA, 10.0f, 300.0f); // 300px de largo
     graficoCadena = escena->addLine(0, 0, 0, cadena->obtenerAlto(), QPen(Qt::gray, 4));
     graficoCadena->setPos(cadena->obtenerX(), cadena->obtenerY());
     // Qt rota desde la esquina superior izquierda, así que el pivote sera el techo
+
+    // Crear la Caja
+    caja = new Objeto(300.0f, 560.0f, Objeto::CAJA,60.0f, 40.0f);
+    graficoCaja = escena->addRect(0, 0,caja->obtenerAncho(),caja->obtenerAlto(), QPen(Qt::black), QBrush(QColor(139, 69, 19)));
+    graficoCaja->setPos(caja->obtenerX(), caja->obtenerY());
+
+    // Crear la piedra visual
+    graficoPiedra = escena->addRect(0, 0, 10, 10, QPen(Qt::NoPen), QBrush(Qt::gray));
+    graficoPiedra->setVisible(false); //no se muestra hasta que se lance
 
     temporizador = new QTimer(this);
     connect(temporizador, &QTimer::timeout, this, &MainWindow::actualizarJuego);
@@ -118,9 +127,60 @@ void MainWindow::actualizarJuego() {
             remy->establecerVelocidadY(-400.0f);
         }//se suelta
     }
+    //caja
+    //miramos si choca(aabb)
+    bool choqueX = (remy->obtenerX()+40 > caja->obtenerX() && remy->obtenerX() < caja->obtenerX() + caja->obtenerAncho());
+    bool choqueY = (remy->obtenerY()+50 > caja->obtenerY() && remy->obtenerY() < caja->obtenerY() + caja->obtenerAlto());
+
+    if (choqueX && choqueY && remy->obtenerY()+50 < caja->obtenerY() +5){
+        if (remy->obtenerVelocidadX() > 0 && remy->obtenerX() < caja->obtenerX()){//se mueva a la derecha
+            caja->establecerX(caja->obtenerX() + remy->obtenerVelocidadX() * dt * 0.5f); //la caja se mueve mas lento por friccion
+            remy->establecerX(caja->obtenerX() - 40); // bloquear a remy pa que no traspase
+        }
+        // lo mismo pero a la izquierda
+        else if (remy->obtenerVelocidadX() < 0 && remy->obtenerX() > caja->obtenerX()) {
+            caja->establecerX(caja->obtenerX() + remy->obtenerVelocidadX() * dt * 0.5f);
+            remy->establecerX(caja->obtenerX() + caja->obtenerAncho());
+        }
+    }
+
+    if (caja->obtenerVelocidadX() != 0){
+    }
+    //detectar si esta sobre caja
+    bool sobreLaCajaX = (remy->obtenerX() + 40 > caja->obtenerX() && remy->obtenerX() < caja->obtenerX() + caja->obtenerAncho());//cae sobre
+    bool sobreLaCajaY = (remy->obtenerY() + 50 >= caja->obtenerY() - 10.0f && remy->obtenerY() + 50 <= caja->obtenerY() + 10.0f);
+
+    if (sobreLaCajaX && sobreLaCajaY && remy->obtenerVelocidadY() >= 0){
+        remy->establecerAlturaSuelo(caja->obtenerY() - 50.0f); // 50 es la altura de remy
+    } else {
+        remy->establecerAlturaSuelo(600.0f);//sino esta sobre, el piso es normal
+    }
+    // piedra
+    Objeto* piedraActual = nullptr;
+    for (Objeto* piedra : remy->obtenerPiedrasLanzadas()){
+        if (piedra->estaActivo()){
+            piedraActual = piedra;
+            break;
+        }
+    }
+
+    if (piedraActual != nullptr) {
+        graficoPiedra->setVisible(true);
+        graficoPiedra->setPos(piedraActual->obtenerX(), piedraActual->obtenerY());
+    } else {
+        graficoPiedra->setVisible(false);
+    }
+    // ruido
+    for (Objeto* piedra : remy->obtenerPiedrasLanzadas()) {
+        if (!piedra->estaActivo() && piedra->obtenerX() > 0){ //ya choco
+            insecto->percibir(remy->obtenerX(), remy->obtenerY(), true, piedra->obtenerX(), piedra->obtenerY());//investiga en esa direc
+            piedra->establecerX(-100.0f); //sacamos la piedra pa que no repita la accion
+        }
+    }
     if (!remy->obtenerColgado()) {
         remy->actualizarFisica(dt);
     }
+
 
     // El insecto percibe y actua
     insecto->percibir(remy->obtenerX(), remy->obtenerY(), false, 0, 0);
@@ -133,6 +193,7 @@ void MainWindow::actualizarJuego() {
     cadena->actualizarFisica(dt);
     // Aplicar la rotación visual
     graficoCadena->setRotation(-cadena->obtenerAnguloOscilacion()); // Agrega el menos
+     graficoCaja->setPos(caja->obtenerX(), caja->obtenerY());
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
@@ -155,6 +216,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     case Qt::Key_Down:
     case Qt::Key_S:
         remy->agacharse(true);
+        break;
+    case Qt::Key_F:
+        remy->lanzarPiedra();
         break;
     }
 }

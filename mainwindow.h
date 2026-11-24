@@ -30,6 +30,9 @@ private:
     Enemigo *insecto;
     Objeto *charcoLodo;
     Objeto *cadena;
+    Objeto *caja;
+    QGraphicsRectItem *graficoCaja;
+    QGraphicsRectItem *graficoPiedra;
 
     QGraphicsRectItem *graficoRemy;
     QGraphicsRectItem *graficoInsecto;
