@@ -1,8 +1,7 @@
 #include "enemigo.h"
 #include <cmath>
 #include <iostream>
-#include <QDebug>
-Enemigo::Enemigo(float x, float y):Entidad(x, y), estadoActual(PATRULLANDO), rangoVision(200.0f), radioEscucha(150.0f), contadorEngaños(0), indicePatrullaActual(0),tiempoInvestigacion(0.0f){
+Enemigo::Enemigo(float x, float y):Entidad(x, y), estadoActual(PATRULLANDO), rangoVision(200.0f), radioEscucha(500.0f), contadorEngaños(0), indicePatrullaActual(0),tiempoInvestigacion(0.0f){
     // por donde va a vigilar
     puntosPatrulla.push_back({300.0f, 600.0f});
     puntosPatrulla.push_back({1000.0f, 600.0f});
@@ -15,12 +14,12 @@ void Enemigo::actualizarFisica(float dt){
     posicionY += velocidadY * dt;
 }
 
-void Enemigo::percibir(float xJugador, float yJugador, bool hayRuido, float xRuido, float yRuido){
+void Enemigo::percibir(float xJugador, float yJugador, bool hayRuido, float xRuido, float yRuido,bool escondido){
     float dx = xJugador - posicionX;
     float dy = yJugador - posicionY;
     float distanciaJugador = std::sqrt(dx*dx + dy*dy);
 
-    if (distanciaJugador < rangoVision){
+    if (!escondido && distanciaJugador < rangoVision){
         estadoActual = PERSIGUIENDO;
         return;
     }
@@ -30,9 +29,7 @@ void Enemigo::percibir(float xJugador, float yJugador, bool hayRuido, float xRui
         float dyR = yRuido - posicionY;
         float distanciaRuido = std::sqrt(dxR*dxR + dyR*dyR);
 
-        qDebug() << "Insecto en X:" << posicionX << " | Ruido en X:" << xRuido << " | Distancia:" << distanciaRuido;
         if (distanciaRuido < radioEscucha){
-               qDebug() << "¡ESCUCHÓ EL RUIDO! Cambiando a INVESTIGANDO";
             estadoActual = INVESTIGANDO;
             this->xRuido = xRuido;
             this->yRuido = yRuido;
@@ -48,51 +45,59 @@ void Enemigo::percibir(float xJugador, float yJugador, bool hayRuido, float xRui
 
 void Enemigo::razonar(){
     // En este diseño, la decisión se toma directamente en percibir()
-    // Aquí se podría añadir lógica más compleja para el futuro.
+//a la final no se uso, es codigo muerto, si despues veo que agregarle lo hago, sino se borra
 }
 
 void Enemigo::actuar(float dt, float xJugador, float yJugador){
     switch (estadoActual){
     case PATRULLANDO: {
-        if (indicePatrullaActual < (int)puntosPatrulla.size()) {
+        if (indicePatrullaActual < (int)puntosPatrulla.size()){
             float objetivoX = puntosPatrulla[indicePatrullaActual].first;
+            float objetivoY = puntosPatrulla[indicePatrullaActual].second;
 
-            if (std::abs(posicionX - objetivoX) < 5.0f) {
+            if (std::abs(posicionX - objetivoX) < 5.0f){
                 posicionX = objetivoX;
                 velocidadX = 0.0f;
-                indicePatrullaActual = (indicePatrullaActual + 1) % puntosPatrulla.size();
+            } else {
+                if (objetivoX > posicionX) velocidadX = 100.0f;
+                else velocidadX = -100.0f;
             }
-            else {
-                if (objetivoX > posicionX) {
-                    velocidadX = 100.0f;
-                } else {
-                    velocidadX = -100.0f;
-                }
+
+            if (std::abs(posicionY - objetivoY) < 5.0f){
+                posicionY = objetivoY;
+                velocidadY = 0.0f;
+            } else {
+                if (objetivoY > posicionY) velocidadY = 100.0f;
+                else velocidadY = -100.0f;
+            }
+
+            // si llego al punto pasa al siguiente
+            if (std::abs(posicionX - objetivoX) < 5.0f && std::abs(posicionY - objetivoY) < 5.0f){
+                indicePatrullaActual = (indicePatrullaActual + 1) % puntosPatrulla.size();
             }
         }
         break;
     }
-    case INVESTIGANDO:{
-          qDebug() << "Insecto INVESTIGANDO. Objetivo X:" << this->xRuido << " | Mi X:" << posicionX;
-        if (this->xRuido > posicionX + 10.0f){
-            velocidadX = 150.0f;
-        } else if (this->xRuido < posicionX - 10.0f){
-            velocidadX = -150.0f;
-        } else {
-            velocidadX = 0.0f;
-            qDebug() << "Llegué al ruido, vuelvo a patrullar";
-        }
+    case INVESTIGANDO: {
+        // moverse a los puntos de ruido
+        if (this->xRuido > posicionX + 10.0f) velocidadX = 150.0f;
+        else if (this->xRuido < posicionX - 10.0f) velocidadX = -150.0f;
+        else velocidadX = 0.0f;
+
+        if (this->yRuido > posicionY + 10.0f) velocidadY = 150.0f;
+        else if (this->yRuido < posicionY - 10.0f) velocidadY = -150.0f;
+        else velocidadY = 0.0f;
         break;
     }
     case PERSIGUIENDO: {
-        // calcula la dirección hacia Remy
-        if (xJugador > posicionX + 5.0f) {// el 5 es el margen de tolerancia o deadzone
-            velocidadX = 250.0f;
-        } else if (xJugador < posicionX - 5.0f) {
-            velocidadX = -250.0f;
-        } else {
-            velocidadX = 0.0f; // Ya lo alcanzo
-        }
+        //ya persigue en todas direcciones
+        if (xJugador > posicionX + 5.0f) velocidadX = 250.0f;
+        else if (xJugador < posicionX - 5.0f) velocidadX = -250.0f;
+        else velocidadX = 0.0f;
+
+        if (yJugador > posicionY + 5.0f) velocidadY = 250.0f;
+        else if (yJugador < posicionY - 5.0f) velocidadY = -250.0f;
+        else velocidadY = 0.0f;
         break;
     }
     }
@@ -117,5 +122,15 @@ std::string Enemigo::obtenerEstadoComoTexto() const {
     case INVESTIGANDO: return "INVESTIGANDO";
     case PERSIGUIENDO: return "PERSIGUIENDO";
     default: return "DESCONOCIDO";
+    }
+}
+void Enemigo::actualizarVision(float xJugador, float yJugador) {
+    // calcular angulo a jugadr
+    float dx = xJugador - posicionX;
+    float dy = yJugador - posicionY;
+    float distancia = std::sqrt(dx*dx + dy*dy);
+
+    if (distancia < rangoVision){
+        estadoActual = PERSIGUIENDO;
     }
 }

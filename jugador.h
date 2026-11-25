@@ -21,11 +21,14 @@ public:
 
     // Sobrescribimos el método de la clase base
     void actualizarFisica(float dt) override;
+    void actualizarFisicaTopDown(float dt);
+    void moverseVertical(float direccion);
 
     void moverse(float direccion); // -1 izquierda, +1 derecha, 0 quieto
     void saltar();
     void agacharse(bool agachado);
     Objeto* lanzarPiedra();
+    Objeto* lanzarPiedraRecta(float dirX, float dirY);
     std::vector<Objeto*>& obtenerPiedrasLanzadas();
 
     bool obtenerAgachado() const;

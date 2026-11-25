@@ -2,7 +2,7 @@
 #include <cmath>
 
 Objeto::Objeto(float x, float y, TipoObjeto t, float ancho, float alto)
-    :Entidad(x, y), tipo(t), peso(1.0f), activo(false), ancho(ancho), alto(alto), anguloOscilacion(0.0f),velocidadAngular(0.0f), estaOscilando(false){
+    :Entidad(x, y), tipo(t), peso(1.0f), activo(false), ancho(ancho), alto(alto), anguloOscilacion(0.0f),velocidadAngular(0.0f), estaOscilando(false),esTopDown(false){
 }
 void Objeto::iniciarOscilacion() {
     estaOscilando = true;
@@ -33,16 +33,21 @@ void Objeto::actualizarFisica(float dt){
     }
     else if (tipo == PIEDRA && activo){
         //fisicas
-        velocidadY += 980.0f * dt;
+        if (!esTopDown){
+            velocidadY += 980.0f * dt;
+        }
         posicionX += velocidadX * dt;
         posicionY += velocidadY * dt;
 
         // se detiene si toca suelo
-        if (posicionY >= 600.0f) {
+        if (!esTopDown && posicionY >= 600.0f) {
             posicionY = 600.0f;
-            activo = false; //
+            activo = false;
         }
-        // Las cajas y charcos están quietos por ahora
+        if (esTopDown && (posicionX < 0 || posicionX > 1280 || posicionY < 0 || posicionY > 720)) {
+            activo = false;
+        }
+
     }
 }
 
@@ -54,4 +59,7 @@ float Objeto::obtenerAlto() const {return alto;}
 float Objeto::obtenerAnguloOscilacion() const {return anguloOscilacion;}
 void Objeto::establecerActivo(bool a){
     activo =a;
+}
+void Objeto::establecerTopDown(bool td){
+    esTopDown = td;
 }

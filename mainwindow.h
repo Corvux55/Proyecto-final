@@ -9,6 +9,7 @@
 #include "enemigo.h"
 #include "objeto.h"
 #include <QGraphicsLineItem>
+#include <QGraphicsRectItem>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -38,9 +39,29 @@ private:
     QGraphicsRectItem *graficoInsecto;
     QGraphicsRectItem *graficoCharco;
     QGraphicsLineItem *graficoCadena;
+    QGraphicsRectItem *graficoVentana;
     bool teclaDerechaPresionada;
     bool teclaIzquierdaPresionada;
     bool teclaSaltoPresionada;
+    bool teclaJPresionada;
+    float ventanaX;
+    float ventanaY;
+    float ventanaAncho;
+    float ventanaAlto;
+
+    bool enNivel2;
+    QGraphicsRectItem *zonaAgua;
+    QGraphicsRectItem *zonaLodo;
+    QGraphicsRectItem *graficoZonaSegura;
+
+    float zonaSeguraX;
+    float zonaSeguraY;
+    float zonaSeguraAncho;
+    float zonaSeguraAlto;
+    bool teclaArribaPresionada;
+    bool teclaAbajoPresionada;
+
+    bool juegoTerminado;
 
 private slots:
     void actualizarJuego();

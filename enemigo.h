@@ -21,18 +21,20 @@ private:
     std::vector<std::pair<float, float>> puntosPatrulla;
     int indicePatrullaActual;
     float tiempoInvestigacion;
+    float anguloVision;
 public:
     Enemigo(float x = 0.0f, float y = 0.0f);
 
     void actualizarFisica(float dt) override;
 
-    void percibir(float xJugador, float yJugador, bool hayRuido, float xRuido, float yRuido);
+    void percibir(float xJugador, float yJugador, bool hayRuido, float xRuido, float yRuido,bool escondido);
     void razonar();
     void actuar(float dt, float xJugador, float yJugador);
     void aprender();
 
     Estado obtenerEstado() const;
     std::string obtenerEstadoComoTexto() const;
+    void actualizarVision(float xJugador, float yJugador);
 };
 
 #endif // ENEMIGO_H

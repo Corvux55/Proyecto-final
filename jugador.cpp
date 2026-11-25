@@ -12,7 +12,7 @@ void Jugador::actualizarFisica(float dt){
         tiempoGraciaCadena -= dt;
     }
 
-    // Colision con el suelo por ahora un suelo fijo en Y=600->se cambiara despues de pruebas si es necesario
+    // ya actualiza si se sube a una caja
     if(posicionY >= alturaSuelo){
         posicionY = alturaSuelo;
         velocidadY = 0.0f;
@@ -74,6 +74,19 @@ Objeto* Jugador::lanzarPiedra(){
     }
     return nullptr;
 }
+Objeto* Jugador::lanzarPiedraRecta(float dirX, float dirY){
+    if (piedrasInventario > 0){
+        piedrasInventario--;
+        Objeto* nuevaPiedra = new Objeto(posicionX, posicionY, Objeto::PIEDRA, 10.0f, 10.0f);
+        nuevaPiedra->establecerTopDown(true);
+        nuevaPiedra->establecerVelocidadX(dirX * 300.0f);
+        nuevaPiedra->establecerVelocidadY(dirY * 300.0f);
+        nuevaPiedra->establecerActivo(true);
+        piedrasLanzadas.push_back(nuevaPiedra);
+        return nuevaPiedra;
+    }
+    return nullptr;
+}
 std::vector<Objeto*>& Jugador::obtenerPiedrasLanzadas(){
     return piedrasLanzadas;
 }
@@ -89,3 +102,20 @@ void Jugador::establecerTiempoGracia(float tiempo) {tiempoGraciaCadena = tiempo;
 float Jugador::obtenerTiempoGracia() const {return tiempoGraciaCadena;}
 void Jugador::establecerAlturaSuelo(float altura){alturaSuelo = altura;}
 float Jugador::obtenerAlturaSuelo() const {return alturaSuelo;}
+//nivel 2
+void Jugador::actualizarFisicaTopDown(float dt){
+    if (enLodo) {
+        velocidadX *= 0.90f * 0.5f; // Se frena mas rapido en lodo
+        velocidadY *= 0.90f * 0.5f;
+    } else {
+        velocidadX *= 0.90f;
+        velocidadY *= 0.90f;
+    }
+
+    posicionX += velocidadX * dt;
+    posicionY += velocidadY * dt;
+}
+
+void Jugador::moverseVertical(float direccion){
+    velocidadY = direccion * 250.0f;
+}
