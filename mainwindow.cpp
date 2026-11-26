@@ -1,3 +1,4 @@
+
 #include "mainwindow.h"
 #include <QKeyEvent>
 #include <QGraphicsRectItem>
@@ -23,12 +24,17 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
 
     remy = new Jugador(1050.0f, 200.0f);
     insecto = new Enemigo(400.0f, 550.0f);
-    // Remy rectangulo cyan de 40x50 para la prueba
-    graficoRemy = escena->addRect(0, 0, 40, 50, QPen(Qt::black), QBrush(Qt::cyan));
+
+    QPixmap idleRemy(":/imagenes/RemyIdle.png");
+    QPixmap primerRemy = idleRemy.copy(0,0,245,349);
+
+    primerRemy = primerRemy.scaled(40,57, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    graficoRemy = escena->addPixmap(primerRemy);
     graficoRemy->setPos(remy->obtenerX(), remy->obtenerY());
 
-    // Insecto rectangulo rojo de 60x40
-    graficoInsecto = escena->addRect(0, 0, 60, 40, QPen(Qt::black), QBrush(Qt::red));
+    QPixmap pixmapInsecto(":/imagenes/insectoIdle.png");
+    pixmapInsecto = pixmapInsecto.scaled(60,20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    graficoInsecto = escena->addPixmap(pixmapInsecto);
     graficoInsecto->setPos(insecto->obtenerX(), insecto->obtenerY());
     // Crear el Charco de Lodo
     charcoLodo = new Objeto(600.0f, 580.0f, Objeto::CHARCO, 200.0f, 50.0f);
@@ -226,6 +232,32 @@ void MainWindow::actualizarJuego() {
             remy->actualizarFisica(dt);
         }
 
+        // colision enemigo con caja
+        bool choqueInsectoX = (insecto->obtenerX() + 60 > caja->obtenerX() && insecto->obtenerX() < caja->obtenerX() + caja->obtenerAncho());
+        bool choqueInsectoY = (insecto->obtenerY() + 40 > caja->obtenerY() && insecto->obtenerY() < caja->obtenerY() + caja->obtenerAlto());
+
+        if (choqueInsectoX && choqueInsectoY){
+            float penIzq = (insecto->obtenerX() + 60) - caja->obtenerX();
+            float penDer = (caja->obtenerX() + caja->obtenerAncho()) - insecto->obtenerX();
+            float penArr = (insecto->obtenerY() + 40) - caja->obtenerY();
+            float penAba = (caja->obtenerY() + caja->obtenerAlto()) - insecto->obtenerY();
+
+            float minPen = std::min({penIzq, penDer, penArr, penAba});
+
+            if (minPen == penIzq) {
+                insecto->establecerX(insecto->obtenerX() - penIzq);
+                insecto->establecerVelocidadX(0.0f);
+            } else if (minPen == penDer) {
+                insecto->establecerX(insecto->obtenerX() + penDer);
+                insecto->establecerVelocidadX(0.0f);
+            } else if (minPen == penArr) {
+                insecto->establecerY(insecto->obtenerY() - penArr);
+                insecto->establecerVelocidadY(0.0f);
+            } else {
+                insecto->establecerY(insecto->obtenerY() + penAba);
+                insecto->establecerVelocidadY(0.0f);
+            }
+        }
 
         // El insecto percibe y actua
         insecto->percibir(remy->obtenerX(), remy->obtenerY(), false, 0, 0,false);
@@ -292,6 +324,28 @@ void MainWindow::actualizarJuego() {
         else remy->moverseVertical(0.0f);
 
         remy->actualizarFisicaTopDown(dt);
+        //piedra
+        Objeto* piedraActual = nullptr;
+        for (Objeto* piedra : remy->obtenerPiedrasLanzadas()){
+            if (piedra->estaActivo()) {
+                piedraActual = piedra;
+                break;
+            }
+        }
+
+        if (piedraActual != nullptr) {
+            graficoPiedra->setVisible(true);
+            graficoPiedra->setPos(piedraActual->obtenerX(), piedraActual->obtenerY());
+        } else {
+            graficoPiedra->setVisible(false);
+        }
+        //ruido piedra
+        for (Objeto* piedra : remy->obtenerPiedrasLanzadas()){
+            if (!piedra->estaActivo() && piedra->obtenerX() > 0){
+                insecto->percibir(remy->obtenerX(), remy->obtenerY(), true, piedra->obtenerX(), piedra->obtenerY(), false);
+                piedra->establecerX(-100.0f);
+            }
+        }
 
         //colision caja
         bool choqueX = (remy->obtenerX() + 40 > caja->obtenerX() && remy->obtenerX() < caja->obtenerX() + caja->obtenerAncho());
@@ -352,6 +406,35 @@ void MainWindow::actualizarJuego() {
         //si hay ruido pasa coor de remy
         insecto->percibir(remy->obtenerX(), remy->obtenerY(), enAgua, remy->obtenerX(), remy->obtenerY(),escondido);
         insecto->actuar(dt, remy->obtenerX(), remy->obtenerY());//actuar
+
+        // colision enemigi caja
+        bool choqueInsectoX = (insecto->obtenerX() + 60 > caja->obtenerX() && insecto->obtenerX() < caja->obtenerX() + caja->obtenerAncho());
+        bool choqueInsectoY = (insecto->obtenerY() + 40 > caja->obtenerY() && insecto->obtenerY() < caja->obtenerY() + caja->obtenerAlto());
+
+        if (choqueInsectoX && choqueInsectoY) {
+
+            float penIzq = (insecto->obtenerX() + 60) - caja->obtenerX();
+            float penDer = (caja->obtenerX() + caja->obtenerAncho()) - insecto->obtenerX();
+            float penArr = (insecto->obtenerY() + 40) - caja->obtenerY();
+            float penAba = (caja->obtenerY() + caja->obtenerAlto()) - insecto->obtenerY();
+
+
+            float minPen = std::min({penIzq, penDer, penArr, penAba});
+
+            if (minPen == penIzq) {
+                insecto->establecerX(insecto->obtenerX() - penIzq);
+                insecto->establecerVelocidadX(0.0f);
+            } else if (minPen == penDer) {
+                insecto->establecerX(insecto->obtenerX() + penDer);
+                insecto->establecerVelocidadX(0.0f);
+            } else if (minPen == penArr) {
+                insecto->establecerY(insecto->obtenerY() - penArr);
+                insecto->establecerVelocidadY(0.0f);
+            } else {
+                insecto->establecerY(insecto->obtenerY() + penAba);
+                insecto->establecerVelocidadY(0.0f);
+            }
+        }
 
         graficoInsecto->setPos(insecto->obtenerX(), insecto->obtenerY());
 

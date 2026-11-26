@@ -2,7 +2,8 @@
 #include <cmath>
 
 Objeto::Objeto(float x, float y, TipoObjeto t, float ancho, float alto)
-    :Entidad(x, y), tipo(t), peso(1.0f), activo(false), ancho(ancho), alto(alto), anguloOscilacion(0.0f),velocidadAngular(0.0f), estaOscilando(false),esTopDown(false){
+    :Entidad(x, y), tipo(t), peso(1.0f), activo(false), ancho(ancho), alto(alto), anguloOscilacion(0.0f),velocidadAngular(0.0f), estaOscilando(false),esTopDown(false),
+    xInicial(x),yInicial(y),distanciaMaxima(400.0f){
 }
 void Objeto::iniciarOscilacion() {
     estaOscilando = true;
@@ -44,8 +45,14 @@ void Objeto::actualizarFisica(float dt){
             posicionY = 600.0f;
             activo = false;
         }
-        if (esTopDown && (posicionX < 0 || posicionX > 1280 || posicionY < 0 || posicionY > 720)) {
-            activo = false;
+        if (esTopDown){
+            float dx = posicionX - xInicial;
+            float dy = posicionY - yInicial;
+            float distanciaRecorrida = std::sqrt(dx*dx+dy*dy);
+
+            if (distanciaRecorrida >= distanciaMaxima || posicionX <0 || posicionY > 1280 || posicionY <0 || posicionY >720){
+                activo = false;
+            }
         }
 
     }
@@ -62,4 +69,7 @@ void Objeto::establecerActivo(bool a){
 }
 void Objeto::establecerTopDown(bool td){
     esTopDown = td;
+}
+void Objeto::establecerDistanciaMaxima(float distancia){
+    distanciaMaxima = distancia;
 }

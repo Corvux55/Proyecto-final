@@ -82,6 +82,7 @@ Objeto* Jugador::lanzarPiedraRecta(float dirX, float dirY){
         nuevaPiedra->establecerVelocidadX(dirX * 300.0f);
         nuevaPiedra->establecerVelocidadY(dirY * 300.0f);
         nuevaPiedra->establecerActivo(true);
+        nuevaPiedra->establecerDistanciaMaxima(300.0f);
         piedrasLanzadas.push_back(nuevaPiedra);
         return nuevaPiedra;
     }
@@ -114,6 +115,9 @@ void Jugador::actualizarFisicaTopDown(float dt){
 
     posicionX += velocidadX * dt;
     posicionY += velocidadY * dt;
+    for (Objeto* piedra : piedrasLanzadas){
+        piedra->actualizarFisica(dt);
+    }
 }
 
 void Jugador::moverseVertical(float direccion){

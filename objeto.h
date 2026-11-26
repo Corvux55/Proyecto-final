@@ -18,6 +18,9 @@ private:
     float velocidadAngular;
     bool estaOscilando;
     bool esTopDown;
+    float xInicial;
+    float yInicial;
+    float distanciaMaxima;
 public:
     Objeto(float x = 0.0f, float y = 0.0f, TipoObjeto t = PIEDRA, float ancho = 40.0f, float alto = 40.0f);
     void actualizarFisica(float dt) override;
@@ -32,5 +35,6 @@ public:
     float obtenerVelocidadAngular() const;
     void establecerActivo(bool a);
     void establecerTopDown(bool td);
+    void establecerDistanciaMaxima(float distancia);
 };
 #endif // OBJETO_H

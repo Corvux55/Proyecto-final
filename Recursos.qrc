@@ -10,5 +10,7 @@
         <file>RemyIdle.webp</file>
         <file>ai-image-generator(7).webp</file>
         <file>ai-image-generator(8).webp</file>
+        <file>RemyIdle.png</file>
+        <file>insectoIdle.png</file>
     </qresource>
 </RCC>

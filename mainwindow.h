@@ -35,8 +35,8 @@ private:
     QGraphicsRectItem *graficoCaja;
     QGraphicsRectItem *graficoPiedra;
 
-    QGraphicsRectItem *graficoRemy;
-    QGraphicsRectItem *graficoInsecto;
+    QGraphicsPixmapItem *graficoRemy;
+    QGraphicsPixmapItem *graficoInsecto;
     QGraphicsRectItem *graficoCharco;
     QGraphicsLineItem *graficoCadena;
     QGraphicsRectItem *graficoVentana;
