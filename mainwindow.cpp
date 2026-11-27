@@ -9,11 +9,24 @@
 MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
     escena = new QGraphicsScene(this);
     escena->setSceneRect(0, 0, 1280, 720);
+    enNivel2 = false;
+    temporizador = new QTimer(this);
+    connect(temporizador, &QTimer::timeout, this, &MainWindow::actualizarJuego);
+    temporizador->start(16); // ~60 FPS
+    setFocusPolicy(Qt::StrongFocus);//para que reciba el teclado
+    teclaDerechaPresionada = false;//banderas para corregcion del diley
+    teclaIzquierdaPresionada = false;
+    teclaSaltoPresionada = false;
+    teclaArribaPresionada = false;
+    teclaAbajoPresionada= false;
+    teclaJPresionada = false;
+
     if (enNivel2){
-        escena->setBackgroundBrush(QColor(30, 30, 40));
-    }
-    else{
-        escena->setBackgroundBrush(QColor(20, 20, 30)); // Fondo oscuro temporal
+        QPixmap fondoNivel2(":/recursos/recursos_juego_transparentes/escenario_nivel2_plaza.png");
+        escena->setBackgroundBrush(fondoNivel2.scaled(1280, 720, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    } else {
+        QPixmap fondoNivel1(":/recursos/recursos_juego_transparentes/escenario_nivel1_sotano.png");
+        escena->setBackgroundBrush(fondoNivel1.scaled(1280, 720, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     }
     vista = new QGraphicsView(escena, this);
     vista->setRenderHint(QPainter::Antialiasing);
@@ -24,37 +37,111 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
 
     remy = new Jugador(1050.0f, 200.0f);
     insecto = new Enemigo(400.0f, 550.0f);
+    framesIdle.append(QPixmap(":/recursos/rat_chef_sprites_transparent/idle/idle1.png"));
+    framesIdle.append(QPixmap(":/recursos/rat_chef_sprites_transparent/idle/idle2.png"));
+    framesIdle.append(QPixmap(":/recursos/rat_chef_sprites_transparent/idle/idle3.png"));
+    framesIdle.append(QPixmap(":/recursos/rat_chef_sprites_transparent/idle/idle4.png"));
+    framesIdle.append(QPixmap(":/recursos/rat_chef_sprites_transparent/idle/idle5.png"));
 
-    QPixmap idleRemy(":/imagenes/RemyIdle.png");
-    QPixmap primerRemy = idleRemy.copy(0,0,245,349);
+    framesCorrer.append(QPixmap(":/recursos/rat_chef_sprites_transparent/run/run1.png"));
+    framesCorrer.append(QPixmap(":/recursos/rat_chef_sprites_transparent/run/run2.png"));
+    framesCorrer.append(QPixmap(":/recursos/rat_chef_sprites_transparent/run/run3.png"));
+    framesCorrer.append(QPixmap(":/recursos/rat_chef_sprites_transparent/run/run4.png"));
+    framesCorrer.append(QPixmap(":/recursos/rat_chef_sprites_transparent/run/run5.png"));
 
-    primerRemy = primerRemy.scaled(40,57, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    graficoRemy = escena->addPixmap(primerRemy);
+    framesSaltar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/jump/jump1.png"));
+    framesSaltar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/jump/jump2.png"));
+    framesSaltar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/jump/jump3.png"));
+    framesSaltar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/jump/jump4.png"));
+    framesSaltar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/jump/jump5.png"));
+
+    framesAgachado.append(QPixmap(":/recursos/rat_chef_sprites_transparent/crouch/crouch1.png"));
+    framesAgachado.append(QPixmap(":/recursos/rat_chef_sprites_transparent/crouch/crouch2.png"));
+    framesAgachado.append(QPixmap(":/recursos/rat_chef_sprites_transparent/crouch/crouch3.png"));
+    framesAgachado.append(QPixmap(":/recursos/rat_chef_sprites_transparent/crouch/crouch4.png"));
+    framesAgachado.append(QPixmap(":/recursos/rat_chef_sprites_transparent/crouch/crouch5.png"));
+
+    framesLanzar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/throw/throw1.png"));
+    framesLanzar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/throw/throw2.png"));
+    framesLanzar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/throw/throw3.png"));
+    framesLanzar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/throw/throw4.png"));
+    framesLanzar.append(QPixmap(":/recursos/rat_chef_sprites_transparent/throw/throw5.png"));
+
+    lanzandoPiedra = false;
+
+    frameActualRemy = 0;
+    graficoRemy = escena->addPixmap(framesIdle[0].scaled(40, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     graficoRemy->setPos(remy->obtenerX(), remy->obtenerY());
 
-    QPixmap pixmapInsecto(":/imagenes/insectoIdle.png");
-    pixmapInsecto = pixmapInsecto.scaled(60,20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    graficoInsecto = escena->addPixmap(pixmapInsecto);
+    timerAnimacionRemy = new QTimer(this);
+    connect(timerAnimacionRemy, &QTimer::timeout, this, &MainWindow::actualizarAnimacionRemy);
+    timerAnimacionRemy->start(150);
+
+    framesIdleInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/idle/idle1.png"));
+    framesIdleInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/idle/idle2.png"));
+    framesIdleInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/idle/idle3.png"));
+    framesIdleInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/idle/idle4.png"));
+    framesIdleInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/idle/idle5.png"));
+
+    framesCaminarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/walk/walk1.png"));
+    framesCaminarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/walk/walk2.png"));
+    framesCaminarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/walk/walk3.png"));
+    framesCaminarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/walk/walk4.png"));
+    framesCaminarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/walk/walk5.png"));
+
+    framesCorrerInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/run/run1.png"));
+    framesCorrerInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/run/run2.png"));
+    framesCorrerInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/run/run3.png"));
+    framesCorrerInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/run/run4.png"));
+    framesCorrerInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/run/run5.png"));
+
+    framesBuscarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/search/search1.png"));
+    framesBuscarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/search/search2.png"));
+    framesBuscarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/search/search3.png"));
+    framesBuscarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/search/search4.png"));
+    framesBuscarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/search/search5.png"));
+
+    framesAtacarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/attack/attack1.png"));
+    framesAtacarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/attack/attack2.png"));
+    framesAtacarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/attack/attack3.png"));
+    framesAtacarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/attack/attack4.png"));
+    framesAtacarInsecto.append(QPixmap(":/recursos/reaper_sprites_transparentes/attack/attack5.png"));
+
+    frameActualInsecto = 0;
+    graficoInsecto = escena->addPixmap(framesIdleInsecto[0].scaled(150, 70, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     graficoInsecto->setPos(insecto->obtenerX(), insecto->obtenerY());
+
+    timerAnimacionInsecto = new QTimer(this);
+    connect(timerAnimacionInsecto, &QTimer::timeout, this, &MainWindow::actualizarAnimacionInsecto);
+    timerAnimacionInsecto->start(150);
+
     // Crear el Charco de Lodo
     charcoLodo = new Objeto(600.0f, 580.0f, Objeto::CHARCO, 200.0f, 50.0f);
-    graficoCharco = escena->addRect(0, 0, charcoLodo->obtenerAncho(), charcoLodo->obtenerAlto(),  QPen(Qt::NoPen), QBrush(QColor(80, 60, 40, 150)));
+    QPixmap pixmapCharco(":/recursos/recursos_juego_transparentes/charco_lodo.png");
+    pixmapCharco = pixmapCharco.scaled(200, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    graficoCharco = escena->addPixmap(pixmapCharco);
     graficoCharco->setPos(charcoLodo->obtenerX(), charcoLodo->obtenerY());
 
     // Crear la Cadena
     cadena = new Objeto(900.0f, 100.0f, Objeto::CADENA, 10.0f, 300.0f); // 300px de largo
-    graficoCadena = escena->addLine(0, 0, 0, cadena->obtenerAlto(), QPen(Qt::gray, 4));
+    QPixmap pixmapCadena(":/recursos/recursos_juego_transparentes/cadena.png");
+    pixmapCadena = pixmapCadena.scaled(40, 300, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    graficoCadena = escena->addPixmap(pixmapCadena);
     graficoCadena->setPos(cadena->obtenerX(), cadena->obtenerY());
     // Qt rota desde la esquina superior izquierda, así que el pivote sera el techo
 
     // Crear la Caja
-    caja = new Objeto(300.0f, 560.0f, Objeto::CAJA,60.0f, 40.0f);
-    graficoCaja = escena->addRect(0, 0,caja->obtenerAncho(),caja->obtenerAlto(), QPen(Qt::black), QBrush(QColor(139, 69, 19)));
+    caja = new Objeto(100.0f, 600.0f, Objeto::CAJA,120.0f, 80.0f);
+    QPixmap pixmapCaja(":/recursos/recursos_juego_transparentes/caja.png");
+    pixmapCaja = pixmapCaja.scaled(120, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    graficoCaja = escena->addPixmap(pixmapCaja);
     graficoCaja->setPos(caja->obtenerX(), caja->obtenerY());
 
     // Crear la piedra visual
-    graficoPiedra = escena->addRect(0, 0, 10, 10, QPen(Qt::NoPen), QBrush(Qt::gray));
-    graficoPiedra->setVisible(false); //no se muestra hasta que se lance
+    QPixmap pixmapPiedra(":/recursos/recursos_juego_transparentes/piedra_arrojadiza_redonda.png"); // Ajusta la ruta
+    pixmapPiedra = pixmapPiedra.scaled(15, 15, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    graficoPiedra = escena->addPixmap(pixmapPiedra);
+    graficoPiedra->setVisible(false);//no se muestra hasta que se lance
 
     juegoTerminado = false;
     ventanaX = 1100.0f;
@@ -79,7 +166,10 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
     graficoZonaSegura->setVisible(false);
 
     // dibujar la ventana
-    graficoVentana = escena->addRect(ventanaX, ventanaY, ventanaAncho, ventanaAlto, QPen(Qt::yellow, 3), QBrush(Qt::NoBrush));
+    QPixmap pixmapVentana(":/recursos/recursos_juego_transparentes/ventana_salida.png"); // Ajusta la ruta
+    pixmapVentana = pixmapVentana.scaled(ventanaAncho, ventanaAlto, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    graficoVentana = escena->addPixmap(pixmapVentana);
+    graficoVentana->setPos(ventanaX, ventanaY);
     graficoVentana->setVisible(true);
 
     // nivel2 objetos
@@ -90,19 +180,6 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent) {
     //lodo
     QGraphicsRectItem *zonaLodo = escena->addRect(700, 400, 250, 200, QPen(Qt::darkYellow), QBrush(QColor(80, 60, 40, 120)));
     zonaLodo->setVisible(false);
-
-
-    enNivel2 = false;
-    temporizador = new QTimer(this);
-    connect(temporizador, &QTimer::timeout, this, &MainWindow::actualizarJuego);
-    temporizador->start(16); // ~60 FPS
-    setFocusPolicy(Qt::StrongFocus);//para que reciba el teclado
-    teclaDerechaPresionada = false;//banderas para corregcion del diley
-    teclaIzquierdaPresionada = false;
-    teclaSaltoPresionada = false;
-    teclaArribaPresionada = false;
-    teclaAbajoPresionada= false;
-    teclaJPresionada = false;
 
 }
 
@@ -276,7 +353,7 @@ void MainWindow::actualizarJuego() {
             //gameover
             float distX = std::abs(remy->obtenerX() - insecto->obtenerX());
             float distY = std::abs(remy->obtenerY() - insecto->obtenerY());
-            if (distX < 40.0f && distY < 50.0f) {
+            if (distX < 50.0f && distY < 20.0f) {
                 qDebug() << "¡GAME OVER! El insecto atrapó a Remy.";
                 juegoTerminado = true;
                 temporizador->stop();
@@ -289,7 +366,8 @@ void MainWindow::actualizarJuego() {
                 qDebug() << "¡NIVEL 1 COMPLETADO! Pasando al Nivel 2...";
 
                 enNivel2 = true;
-                escena->setBackgroundBrush(QColor(30, 30, 40));
+                QPixmap fondoNivel2(":/recursos/recursos_juego_transparentes/escenario_nivel2_plaza.png");
+                escena->setBackgroundBrush(fondoNivel2.scaled(1280, 720, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
                 //visibes zonas n2
                 graficoZonaSegura->setVisible(true);
                 zonaAgua->setVisible(true);
@@ -442,7 +520,7 @@ void MainWindow::actualizarJuego() {
         float distX = std::abs(remy->obtenerX() - insecto->obtenerX());
         float distY = std::abs(remy->obtenerY() - insecto->obtenerY());
 
-        if (distX < 40.0f && distY < 50.0f) {
+        if (distX < 50.0f && distY < 20.0f){
             juegoTerminado = true;
             temporizador->stop();
         }
@@ -455,6 +533,73 @@ void MainWindow::actualizarJuego() {
     }
 }
 
+void MainWindow::actualizarAnimacionRemy() {
+    QList<QPixmap> *animacionActual = &framesIdle;
+    int velocidadDeseada = 150;
+
+    if (lanzandoPiedra) {
+        animacionActual = &framesLanzar;
+        velocidadDeseada = 60;
+        if (frameActualRemy >= framesLanzar.size() - 1){
+            lanzandoPiedra = false;
+            frameActualRemy = 0;
+        }
+    } else if (!remy->obtenerEnSuelo()){
+        animacionActual = &framesSaltar;
+        velocidadDeseada = 100;
+    } else if (remy->obtenerAgachado()){
+        animacionActual = &framesAgachado;
+        velocidadDeseada = 250;
+    } else if (teclaDerechaPresionada || teclaIzquierdaPresionada){
+        animacionActual = &framesCorrer;
+        velocidadDeseada = 100;
+    } else {
+        animacionActual = &framesIdle;
+        velocidadDeseada = 300;
+    }
+
+    // ajusta el temporizador si cambio
+    if (timerAnimacionRemy->interval() != velocidadDeseada){
+        timerAnimacionRemy->setInterval(velocidadDeseada);
+    }
+
+    if (animacionActual->isEmpty()) return;
+
+    frameActualRemy = (frameActualRemy + 1) % animacionActual->size();
+    graficoRemy->setPixmap((*animacionActual)[frameActualRemy].scaled(40, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+}
+
+void MainWindow::actualizarAnimacionInsecto(){
+    QList<QPixmap> *animacionActual = &framesIdleInsecto;
+    int velocidadDeseada = 200;
+
+    Enemigo::Estado estado = insecto->obtenerEstado();
+
+    if (estado == Enemigo::PERSIGUIENDO){
+        animacionActual = &framesCorrerInsecto;
+        velocidadDeseada = 80;
+    } else if (estado == Enemigo::INVESTIGANDO){
+        animacionActual = &framesBuscarInsecto;
+        velocidadDeseada = 120;
+    } else{
+        if (insecto->obtenerVelocidadX() != 0 || insecto->obtenerVelocidadY() != 0) {
+            animacionActual = &framesCaminarInsecto;
+            velocidadDeseada = 150;
+        } else {
+            animacionActual = &framesIdleInsecto;
+            velocidadDeseada = 250;
+        }
+    }
+
+    if (timerAnimacionInsecto->interval() != velocidadDeseada){
+        timerAnimacionInsecto->setInterval(velocidadDeseada);
+    }
+
+    if (animacionActual->isEmpty()) return;
+
+    frameActualInsecto = (frameActualInsecto + 1) % animacionActual->size();
+    graficoInsecto->setPixmap((*animacionActual)[frameActualInsecto].scaled(150,70, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+}
 void MainWindow::keyPressEvent(QKeyEvent *event) {
     if (event->isAutoRepeat()) return; // Ignorar el auto-repeat
 
@@ -492,6 +637,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         } else {
             remy->lanzarPiedra();
         }
+        lanzandoPiedra = true;
+        frameActualRemy =0;
         break;
     case Qt::Key_J:
         teclaJPresionada = true;

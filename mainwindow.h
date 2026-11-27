@@ -32,14 +32,14 @@ private:
     Objeto *charcoLodo;
     Objeto *cadena;
     Objeto *caja;
-    QGraphicsRectItem *graficoCaja;
-    QGraphicsRectItem *graficoPiedra;
+    QGraphicsPixmapItem *graficoCaja;
+    QGraphicsPixmapItem *graficoPiedra;
 
     QGraphicsPixmapItem *graficoRemy;
     QGraphicsPixmapItem *graficoInsecto;
-    QGraphicsRectItem *graficoCharco;
-    QGraphicsLineItem *graficoCadena;
-    QGraphicsRectItem *graficoVentana;
+    QGraphicsPixmapItem *graficoCharco;
+    QGraphicsPixmapItem *graficoCadena;
+    QGraphicsPixmapItem *graficoVentana;
     bool teclaDerechaPresionada;
     bool teclaIzquierdaPresionada;
     bool teclaSaltoPresionada;
@@ -62,9 +62,26 @@ private:
     bool teclaAbajoPresionada;
 
     bool juegoTerminado;
+    QList<QPixmap> framesIdle;
+    QList<QPixmap> framesCorrer;
+    QList<QPixmap> framesSaltar;
+    QList<QPixmap> framesAgachado;
+    QList<QPixmap> framesLanzar;
+    bool lanzandoPiedra;
+    int frameActualRemy;
+    QTimer *timerAnimacionRemy;
+    QList<QPixmap> framesIdleInsecto;
+    QList<QPixmap> framesCaminarInsecto;
+    QList<QPixmap> framesCorrerInsecto;
+    QList<QPixmap> framesBuscarInsecto;
+    QList<QPixmap> framesAtacarInsecto;
+    int frameActualInsecto;
+    QTimer *timerAnimacionInsecto;
 
 private slots:
     void actualizarJuego();
+    void actualizarAnimacionRemy();
+    void actualizarAnimacionInsecto();
 };
 
 #endif // MAINWINDOW_H
